@@ -36,3 +36,34 @@ import { fetch } from "@egoist/electron-fetch/renderer"
 const response = await fetch("https://example.com")
 const text = await response.text()
 ```
+
+## How it works
+
+```
+Renderer                 Preload                Main
+   |                       |                     |
+   |  request(id, url)     |                     |
+   |──────────────────────>│                     |
+   |                       |  ipcRenderer.send   |
+   |                       |────────────────────>|
+   |                       |                     |
+   |                       |        net.fetch(url)
+   |                       |          (bypasses CORS)
+   |                       |                     |
+   |                       |   port.postMessage  |
+   |                       |<────────────────────|
+   |  onStream(id, cb)     |                     |
+   │<──────────────────────│                     |
+   |                       |                     |
+   |  Response stream      |                     |
+   |<───────────────────────│                     |
+```
+
+1. Renderer calls `fetch()` → preload sends IPC to main
+2. Main uses `net.fetch` (Electron's CORS-free and proxy friendly fetch) to make the request
+3. Main streams response chunks back via `MessageChannel`
+4. Preload forwards chunks to renderer as a `ReadableStream`
+
+## License
+
+MIT
