@@ -1,6 +1,7 @@
 {
   "name": "@egoist/electron-fetch",
   "type": "module",
+  "version": "0.0.1",
   "exports": {
     "./renderer": "./dist/renderer.mjs",
     "./main": "./dist/main.mjs",
