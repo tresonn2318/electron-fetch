@@ -32,15 +32,91 @@ function App() {
     }
   }
 
+  async function handleText() {
+    const output = document.getElementById("output")!
+    output.textContent = "Loading..."
+
+    try {
+      const response = await fetch("http://localhost:3333/plaintext")
+      const text = await response.text()
+      output.textContent = text
+    } catch (e) {
+      output.textContent = `Error: ${e}`
+    }
+  }
+
+  async function handleJson() {
+    const output = document.getElementById("output")!
+    output.textContent = "Loading..."
+
+    try {
+      const response = await fetch("http://localhost:3333/json")
+      const json = await response.json()
+      output.textContent = JSON.stringify(json, null, 2)
+    } catch (e) {
+      output.textContent = `Error: ${e}`
+    }
+  }
+
+  async function handleBlob() {
+    const output = document.getElementById("output")!
+    output.textContent = "Loading..."
+
+    try {
+      const response = await fetch("http://localhost:3333/binary")
+      const blob = await response.blob()
+      output.textContent = `Blob size: ${blob.size} bytes, type: ${blob.type}`
+    } catch (e) {
+      output.textContent = `Error: ${e}`
+    }
+  }
+
+  async function handleArrayBuffer() {
+    const output = document.getElementById("output")!
+    output.textContent = "Loading..."
+
+    try {
+      const response = await fetch("http://localhost:3333/binary")
+      const buffer = await response.arrayBuffer()
+      output.textContent = `ArrayBuffer size: ${buffer.byteLength} bytes`
+    } catch (e) {
+      output.textContent = `Error: ${e}`
+    }
+  }
+
+  async function handleFormData() {
+    const output = document.getElementById("output")!
+    output.textContent = "Loading..."
+
+    try {
+      const response = await fetch("http://localhost:3333/formdata")
+      const formData = await response.formData()
+      const entries: string[] = []
+      formData.forEach((value, key) => {
+        entries.push(`${key}: ${value}`)
+      })
+      output.textContent = entries.join("\n")
+    } catch (e) {
+      output.textContent = `Error: ${e}`
+    }
+  }
+
   function handleAbort() {
     abortController.abort()
   }
 
   return (
     <div>
-      <h1>SSE Stream Example</h1>
-      <button onClick={handleStream}>Start Stream</button>
-      <button onClick={handleAbort}>Abort</button>
+      <h1>Body Format Tests</h1>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <button onClick={handleStream}>Stream (SSE)</button>
+        <button onClick={handleText}>Text</button>
+        <button onClick={handleJson}>JSON</button>
+        <button onClick={handleBlob}>Blob</button>
+        <button onClick={handleArrayBuffer}>ArrayBuffer</button>
+        <button onClick={handleFormData}>FormData</button>
+        <button onClick={handleAbort}>Abort</button>
+      </div>
       <pre id="output" />
     </div>
   )

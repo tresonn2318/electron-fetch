@@ -21,7 +21,8 @@
   },
   "scripts": {
     "build": "tsdown --dts",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "example": "electron-vite dev --entry out/main/main.js --watch"
   },
   "files": [
     "dist"

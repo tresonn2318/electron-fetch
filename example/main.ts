@@ -22,6 +22,32 @@ function startSseServer() {
       }, 500)
 
       req.on("close", () => clearInterval(interval))
+    } else if (req.url === "/plaintext") {
+      res.writeHead(200, { "Content-Type": "text/plain" })
+      res.end("Hello, this is plain text!")
+    } else if (req.url === "/json") {
+      res.writeHead(200, { "Content-Type": "application/json" })
+      res.end(JSON.stringify({ message: "Hello, JSON!", data: [1, 2, 3] }))
+    } else if (req.url === "/binary") {
+      res.writeHead(200, { "Content-Type": "application/octet-stream" })
+      const buffer = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05])
+      res.end(buffer)
+    } else if (req.url === "/formdata") {
+      const boundary = "----FormBoundary"
+      res.writeHead(200, { "Content-Type": `multipart/form-data; boundary=${boundary}` })
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="field1"`,
+        ``,
+        `value1`,
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="field2"`,
+        ``,
+        `value2`,
+        `--${boundary}--`,
+        ``,
+      ].join("\r\n")
+      res.end(body)
     } else {
       res.writeHead(404)
       res.end()
