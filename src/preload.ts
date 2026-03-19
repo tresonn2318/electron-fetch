@@ -12,14 +12,16 @@ export function exposeElectronFetch() {
       ipcRenderer.send(`${ELECTRON_FETCH_CHANNEL_PREFIX}request`, payload)
     },
 
-    onStreamChannel: (id, callback) => {
-      ipcRenderer.once(
-        `${ELECTRON_FETCH_CHANNEL_PREFIX}${id}`,
-        (event, args) => {
-          const port = args[0]
-          callback(port)
-        },
-      )
+    onStream: (id, callback) => {
+      ipcRenderer.once(`${ELECTRON_FETCH_CHANNEL_PREFIX}${id}`, (event) => {
+        const port = event.ports[0]
+        if (!port) return
+
+        port.onmessage = (event) => {
+          callback(event.data)
+        }
+        port.start()
+      })
     },
 
     abort: (id) => {

@@ -8,9 +8,28 @@ export type InteralRequestPayload = {
 
 export type InternalAPI = {
   request: (payload: InteralRequestPayload) => void
-  onStreamChannel: (id: string, callback: (port: MessagePort) => void) => void
+  onStream: (id: string, callback: (message: StreamMessage) => void) => void
   abort: (id: string) => void
 }
+
+export type StreamMessage =
+  | {
+      type: "error"
+      error: unknown
+    }
+  | {
+      type: "response"
+      status: number
+      statusText: string
+      headers: HeadersInit
+    }
+  | {
+      type: "chunk"
+      value: Uint8Array
+    }
+  | {
+      type: "end"
+    }
 
 export const createAbortChannel = (id: string) =>
   `${ELECTRON_FETCH_CHANNEL_PREFIX}abort:${id}`

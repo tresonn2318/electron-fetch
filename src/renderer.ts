@@ -3,7 +3,6 @@ export async function fetch(url: string | URL, _requestInit?: RequestInit) {
   const { signal, ...requestInit } = _requestInit || {}
 
   const { responseInit, streamRef } = await new Promise<{
-    port: MessagePort
     responseInit: ResponseInit
     streamRef: ReadableStream | null
   }>((resolve) => {
@@ -15,39 +14,34 @@ export async function fetch(url: string | URL, _requestInit?: RequestInit) {
       { once: true },
     )
 
-    __electronFetchInternal.onStreamChannel(id, (port) => {
-      const responseInit: ResponseInit = {}
-      const decoder = new TextDecoder()
-      const streamRef = new ReadableStream({
-        start(controller) {
-          port.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            if (data.type === "end") {
-              controller.close()
-              port.close()
-            } else if (data.type === "error") {
-              controller.error(data.error)
-              port.close()
-            } else if (data.type === "response") {
-              responseInit.status = data.status
-              responseInit.statusText = data.statusText
-              responseInit.headers = data.headers
-            } else if (data.type === "chunk") {
-              controller.enqueue(decoder.decode(data.value, { stream: true }))
-            }
+    const streamRef = new ReadableStream({
+      start(controller) {
+        __electronFetchInternal.onStream(id, (message) => {
+          if (message.type === "response") {
+            resolve({
+              responseInit: {
+                status: message.status,
+                statusText: message.statusText,
+                headers: new Headers(message.headers),
+              },
+              streamRef,
+            })
+          } else if (message.type === "chunk") {
+            controller.enqueue(message.value)
+          } else if (message.type === "error") {
+            controller.error(
+              message.error === "__aborted__"
+                ? new AbortError()
+                : message.error,
+            )
+          } else if (message.type === "end") {
+            controller.close()
           }
-          port.start()
-        },
-        cancel() {
-          __electronFetchInternal.abort(id)
-        },
-      })
-
-      resolve({
-        port,
-        streamRef,
-        responseInit,
-      })
+        })
+      },
+      cancel() {
+        __electronFetchInternal.abort(id)
+      },
     })
 
     __electronFetchInternal.request({
@@ -58,4 +52,11 @@ export async function fetch(url: string | URL, _requestInit?: RequestInit) {
   })
 
   return new Response(streamRef, responseInit)
+}
+
+class AbortError extends Error {
+  constructor() {
+    super("aborted")
+    this.name = "AbortError"
+  }
 }

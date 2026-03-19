@@ -3,6 +3,7 @@ import {
   createAbortChannel,
   ELECTRON_FETCH_CHANNEL_PREFIX,
   type InteralRequestPayload,
+  type StreamMessage,
 } from "./shared"
 
 export function registerElectronFetchMain() {
@@ -28,7 +29,6 @@ export function registerElectronFetchMain() {
       const handleAbort = () => {
         if (aborted) return
         aborted = true
-        reader?.cancel().catch(() => {})
         controller.abort()
       }
 
@@ -43,8 +43,8 @@ export function registerElectronFetchMain() {
           type: "response",
           status: response.status,
           statusText: response.statusText,
-          headers: response.headers,
-        })
+          headers: [...response.headers.entries()],
+        } satisfies StreamMessage)
 
         reader = response.body?.getReader()
 
@@ -55,23 +55,32 @@ export function registerElectronFetchMain() {
               port1.postMessage({
                 type: "chunk",
                 value,
-              })
+              } satisfies StreamMessage)
             }
             if (done) {
               break
             }
           }
         }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          (error.name === "AbortError" || (error as any).code === "ABORT_ERR")
+        ) {
+          port1.postMessage({
+            type: "error",
+            error: "__aborted__",
+          } satisfies StreamMessage)
+        } else {
+          port1.postMessage({ type: "error", error } satisfies StreamMessage)
+        }
+      } finally {
+        ipcMain.removeAllListeners(abortChannel)
 
         port1.postMessage({
           type: "end",
-        })
+        } satisfies StreamMessage)
         port1.close()
-      } catch (err) {
-        port1.postMessage({ type: "error", err })
-        port1.close()
-      } finally {
-        ipcMain.removeAllListeners(abortChannel)
       }
     },
   )

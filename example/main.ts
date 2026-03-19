@@ -1,6 +1,35 @@
 import { app, shell, BrowserWindow, ipcMain } from "electron"
 import { join } from "path"
+import * as http from "node:http"
 import { registerElectronFetchMain } from "../src/main"
+
+function startSseServer() {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/sse") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      })
+
+      let count = 0
+      const interval = setInterval(() => {
+        res.write(`data: message ${count++}\r\n\r\n`)
+      }, 500)
+
+      req.on("close", () => clearInterval(interval))
+    } else {
+      res.writeHead(404)
+      res.end()
+    }
+  })
+
+  server.listen(3333, () => {
+    console.log("SSE server listening on http://localhost:3333")
+  })
+
+  return server
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -31,8 +60,7 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
-
+  startSseServer()
   registerElectronFetchMain()
 
   // Default open or close DevTools by F12 in development
