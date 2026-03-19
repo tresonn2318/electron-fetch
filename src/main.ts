@@ -81,6 +81,7 @@ export function registerElectronFetchMain() {
           type: "end",
         } satisfies StreamMessage)
         port1.close()
+        port2.close()
       }
     },
   )

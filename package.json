@@ -1,13 +1,14 @@
 {
   "name": "@egoist/electron-fetch",
-  "module": "index.ts",
   "type": "module",
-  "private": true,
   "exports": {
-    ".": "./index.ts",
-    "./main": "./main.ts",
-    "./preload": "./preload.ts"
+    "./renderer": "./dist/renderer.mjs",
+    "./main": "./dist/main.mjs",
+    "./preload": "./dist/preload.mjs"
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react-dom": "^19.2.3",
@@ -15,10 +16,11 @@
     "electron-vite": "^5.0.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "tsdown": "^0.21.4",
     "vite": "^8.0.1"
   },
   "peerDependencies": {
-    "electron": ">=28",
-    "typescript": "^5"
-  }
+    "electron": ">=28"
+  },
+  "license": "MIT"
 }

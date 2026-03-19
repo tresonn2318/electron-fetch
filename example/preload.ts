@@ -1,3 +1,3 @@
-import { exposeElectronFetch } from "../src/preload"
+import { registerElectronFetchPreload } from "../src/preload"
 
-exposeElectronFetch()
+registerElectronFetchPreload()

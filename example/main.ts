@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from "electron"
+import { app, shell, BrowserWindow, ipcMain, session } from "electron"
 import { join } from "path"
 import * as http from "node:http"
 import { registerElectronFetchMain } from "../src/main"
@@ -15,6 +15,10 @@ function startSseServer() {
       let count = 0
       const interval = setInterval(() => {
         res.write(`data: message ${count++}\r\n\r\n`)
+        if (count >= 10) {
+          clearInterval(interval)
+          res.end()
+        }
       }, 500)
 
       req.on("close", () => clearInterval(interval))

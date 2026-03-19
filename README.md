@@ -11,9 +11,9 @@ registerElectronFetchMain()
 In preload script:
 
 ```ts
-import { exposeElectronFetch } from "@egoist/electron-fetch/preload"
+import { registerElectronFetchPreload } from "@egoist/electron-fetch/preload"
 
-exposeElectronFetch()
+registerElectronFetchPreload()
 ```
 
 In renderer process:

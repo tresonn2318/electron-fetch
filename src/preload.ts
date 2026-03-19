@@ -6,7 +6,7 @@ import {
   type InternalAPI,
 } from "./shared.ts"
 
-export function exposeElectronFetch() {
+export function registerElectronFetchPreload() {
   const internalAPI: InternalAPI = {
     request: (payload) => {
       ipcRenderer.send(`${ELECTRON_FETCH_CHANNEL_PREFIX}request`, payload)
