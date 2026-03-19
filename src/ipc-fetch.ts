@@ -8,47 +8,24 @@ import {
   type SerializedRequest,
 } from "./shared.ts";
 
-export interface RendererFetchOptions {}
+export type PostMessageLike = (
+  channel: string,
+  message: unknown,
+  transfer?: readonly Transferable[],
+) => void;
 
-interface IpcRendererLike {
-  postMessage(
-    channel: string,
-    message: unknown,
-    transfer?: readonly Transferable[],
-  ): void;
-}
-
-declare global {
-  interface Window {
-    ipcRenderer?: IpcRendererLike;
-  }
-}
-
-export async function fetch(
-  input: RequestInfo | URL,
-  init?: RequestInit,
+export async function fetchWithSerializedRequest(
+  postMessage: PostMessageLike,
+  request: SerializedRequest,
+  signal?: AbortSignal,
 ): Promise<Response> {
-  return fetchWithOptions(input, init);
-}
-
-async function fetchWithOptions(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-): Promise<Response> {
-  const request = new Request(input, init);
-  const signal = request.signal;
-
-  if (signal.aborted) {
+  if (signal?.aborted) {
     throw createAbortError();
   }
 
-  const ipcRenderer = getIpcRenderer();
-  const channel = ELECTRON_FETCH_CHANNEL;
   const messagePort = new MessageChannel();
   const port = messagePort.port1;
-  const payload: FetchRequestMessage = {
-    request: await serializeRequest(request),
-  };
+  const payload: FetchRequestMessage = { request };
 
   let settled = false;
   let streamFinished = false;
@@ -125,26 +102,45 @@ async function fetchWithOptions(
     };
 
     cleanup = () => {
-      signal.removeEventListener("abort", handleAbort);
+      signal?.removeEventListener("abort", handleAbort);
       port.removeEventListener("message", handleMessage);
       port.removeEventListener("messageerror", handleMessageError);
       port.close();
     };
 
-    signal.addEventListener("abort", handleAbort, { once: true });
+    signal?.addEventListener("abort", handleAbort, { once: true });
     port.addEventListener("message", handleMessage as EventListener);
     port.addEventListener("messageerror", handleMessageError);
     port.start();
   });
 
   try {
-    ipcRenderer.postMessage(channel, payload, [messagePort.port2]);
+    postMessage(ELECTRON_FETCH_CHANNEL, payload, [messagePort.port2]);
   } catch (error) {
     cleanup();
     throw error;
   }
 
   return responsePromise;
+}
+
+export async function serializeRequest(
+  request: Request,
+): Promise<SerializedRequest> {
+  return {
+    body: request.body === null ? null : await request.arrayBuffer(),
+    cache: request.cache,
+    credentials: request.credentials,
+    headers: serializeHeaders(request.headers),
+    integrity: request.integrity,
+    keepalive: request.keepalive,
+    method: request.method,
+    mode: request.mode,
+    redirect: request.redirect,
+    referrer: request.referrer,
+    referrerPolicy: request.referrerPolicy,
+    url: request.url,
+  };
 }
 
 function createResponse(
@@ -188,37 +184,8 @@ function deserializeError(message: FetchErrorMessage): Error {
   return error;
 }
 
-async function serializeRequest(request: Request): Promise<SerializedRequest> {
-  return {
-    body: request.body === null ? null : await request.arrayBuffer(),
-    cache: request.cache,
-    credentials: request.credentials,
-    headers: serializeHeaders(request.headers),
-    integrity: request.integrity,
-    keepalive: request.keepalive,
-    method: request.method,
-    mode: request.mode,
-    redirect: request.redirect,
-    referrer: request.referrer,
-    referrerPolicy: request.referrerPolicy,
-    url: request.url,
-  };
-}
-
 function serializeHeaders(headers: Headers): HeaderEntry[] {
   return Array.from(headers.entries());
-}
-
-function getIpcRenderer(): IpcRendererLike {
-  const ipcRenderer = window.ipcRenderer;
-
-  if (ipcRenderer?.postMessage) {
-    return ipcRenderer;
-  }
-
-  throw new Error(
-    "window.ipcRenderer.postMessage is not available. Expose it from your preload script before using electron-fetch.",
-  );
 }
 
 function createAbortError(): Error {

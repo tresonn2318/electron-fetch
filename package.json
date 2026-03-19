@@ -6,7 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./main": "./main.ts",
-    "./renderer": "./renderer.ts"
+    "./preload": "./preload.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -8,16 +8,20 @@ import { registerHandlers } from "@egoist/electron-fetch/main"
 registerHandlers()
 ```
 
-In preload script, expose `window.ipcRenderer.postMessage`.
+In preload script:
+
+```ts
+import { exposeElectronFetch } from "@egoist/electron-fetch/preload"
+
+exposeElectronFetch()
+```
 
 In renderer process:
 
 ```ts
-import { fetch } from "@egoist/electron-fetch/renderer"
-
-// just fetch like normal `window.fetch`
+const response = await window.electronFetch("https://example.com")
 ```
 
 ## How it works
 
-`registerHandlers` register ipc handler and use `MessageChannel` to stream response data, `fetch` would call `ipcRenderer.postMessage('electron-fetch', { url, requestInit })` and use `MessageChannel` to listen to data.
+`registerHandlers` registers the main-process IPC handler and uses `MessageChannel` to stream response data. `exposeElectronFetch()` installs `window.electronFetch(...)` from preload so the renderer can use it like a normal fetch call without handling IPC directly.

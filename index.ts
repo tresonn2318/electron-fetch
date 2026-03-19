@@ -1,1 +1,1 @@
-export * from "./renderer.ts";
+export * from "./preload.ts";
