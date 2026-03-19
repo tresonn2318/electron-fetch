@@ -1,6 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron"
 
-import { ELECTRON_FETCH_CHANNEL_PREFIX, type InternalAPI } from "./shared.ts"
+import {
+  createAbortChannel,
+  ELECTRON_FETCH_CHANNEL_PREFIX,
+  type InternalAPI,
+} from "./shared.ts"
 
 export function exposeElectronFetch() {
   const internalAPI: InternalAPI = {
@@ -16,6 +20,10 @@ export function exposeElectronFetch() {
           callback(port)
         },
       )
+    },
+
+    abort: (id) => {
+      ipcRenderer.send(createAbortChannel(id))
     },
   }
 
